@@ -1,0 +1,5 @@
+# Generated CRE contract bindings: exclude from language stats and collapse in diffs.
+cre/contracts/evm/ts/generated/** linguist-generated=true
+
+# Vendored reference contracts that ship with the CRE template.
+cre/contracts/evm/src/** linguist-vendored=true
