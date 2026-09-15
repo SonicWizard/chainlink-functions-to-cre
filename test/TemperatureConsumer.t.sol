@@ -13,9 +13,7 @@ contract TemperatureConsumerTest is Test {
     bytes32 constant WORKFLOW_ID = keccak256("weather-workflow-id");
 
     event TemperatureRequested(bytes32 indexed requestId, string city);
-    event TemperatureReceived(
-        bytes32 indexed requestId, string city, int32 temperatureC, uint32 observedAt
-    );
+    event TemperatureReceived(bytes32 indexed requestId, string city, int32 temperatureC, uint32 observedAt);
 
     function setUp() public {
         consumer = new TemperatureConsumer(FORWARDER);
@@ -24,11 +22,7 @@ contract TemperatureConsumerTest is Test {
     /* ------------------------------ helpers ------------------------------ */
 
     /// @dev Matches the Forwarder's abi.encodePacked(workflowId, workflowName, workflowOwner).
-    function _metadata(bytes32 id, bytes10 name, address owner)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function _metadata(bytes32 id, bytes10 name, address owner) internal pure returns (bytes memory) {
         return abi.encodePacked(id, name, owner);
     }
 
@@ -42,9 +36,7 @@ contract TemperatureConsumerTest is Test {
 
     function _deliver(bytes32 id, string memory city, int32 temp, uint32 at) internal {
         vm.prank(FORWARDER);
-        consumer.onReport(
-            _metadata(WORKFLOW_ID, bytes10(0), WORKFLOW_OWNER), _report(id, city, temp, at)
-        );
+        consumer.onReport(_metadata(WORKFLOW_ID, bytes10(0), WORKFLOW_OWNER), _report(id, city, temp, at));
     }
 
     /* ------------------------------ requests ------------------------------ */
@@ -98,9 +90,7 @@ contract TemperatureConsumerTest is Test {
 
     function test_Report_RevertsForUnknownRequestId() public {
         bytes32 bogus = keccak256("never-requested");
-        vm.expectRevert(
-            abi.encodeWithSelector(TemperatureConsumer.UnknownRequestId.selector, bogus)
-        );
+        vm.expectRevert(abi.encodeWithSelector(TemperatureConsumer.UnknownRequestId.selector, bogus));
         _deliver(bogus, "Ghost", 1, 1);
     }
 
@@ -122,14 +112,8 @@ contract TemperatureConsumerTest is Test {
     function test_Report_RevertsForNonForwarder() public {
         bytes32 id = consumer.requestTemperature("Rome");
         vm.prank(address(0xBAD));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ReceiverTemplate.InvalidSender.selector, address(0xBAD), FORWARDER
-            )
-        );
-        consumer.onReport(
-            _metadata(WORKFLOW_ID, bytes10(0), WORKFLOW_OWNER), _report(id, "Rome", 20, 1)
-        );
+        vm.expectRevert(abi.encodeWithSelector(ReceiverTemplate.InvalidSender.selector, address(0xBAD), FORWARDER));
+        consumer.onReport(_metadata(WORKFLOW_ID, bytes10(0), WORKFLOW_OWNER), _report(id, "Rome", 20, 1));
     }
 
     function test_Report_RevertsForWrongAuthorWhenConfigured() public {
@@ -138,13 +122,9 @@ contract TemperatureConsumerTest is Test {
 
         vm.prank(FORWARDER);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                ReceiverTemplate.InvalidAuthor.selector, address(0xDEAD), WORKFLOW_OWNER
-            )
+            abi.encodeWithSelector(ReceiverTemplate.InvalidAuthor.selector, address(0xDEAD), WORKFLOW_OWNER)
         );
-        consumer.onReport(
-            _metadata(WORKFLOW_ID, bytes10(0), address(0xDEAD)), _report(id, "Rome", 20, 1)
-        );
+        consumer.onReport(_metadata(WORKFLOW_ID, bytes10(0), address(0xDEAD)), _report(id, "Rome", 20, 1));
     }
 
     /// @dev The name in metadata is not the plaintext name: it is the first 10 chars of the

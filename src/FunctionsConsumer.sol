@@ -31,8 +31,7 @@ contract FunctionsConsumer is FunctionsClient {
     // Hardcoded for Sepolia
     // Supported networks https://docs.chain.link/chainlink-functions/supported-networks
     address constant ROUTER = 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0;
-    bytes32 constant DON_ID =
-        0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000;
+    bytes32 constant DON_ID = 0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000;
     //Callback gas limit
     uint32 constant GAS_LIMIT = 300000;
     // JavaScript source code run by the DON.
@@ -41,6 +40,7 @@ contract FunctionsConsumer is FunctionsClient {
     // reaches consensus. Only the temperature field is returned -- the raw body
     // carries a per-request generationtime_ms that would break consensus.
     // Each line ends in \n: adjacent Solidity literals concatenate with no separator.
+    // forgefmt: disable-next-item
     string public constant SOURCE =
         "const city = args[0];\n"
         "const geo = await Functions.makeHttpRequest({\n"
@@ -60,21 +60,13 @@ contract FunctionsConsumer is FunctionsClient {
         "return Functions.encodeString(`${name}: ${temp}C`);";
 
     // Event to log responses
-    event Response(
-        bytes32 indexed requestId,
-        string temperature,
-        bytes response,
-        bytes err
-    );
+    event Response(bytes32 indexed requestId, string temperature, bytes response, bytes err);
 
     error UnexpectedRequestID(bytes32 requestId);
 
     constructor() FunctionsClient(ROUTER) {}
 
-    function getTemperature(
-        string memory city,
-        uint64 subscriptionId
-    ) external returns (bytes32 requestId) {
+    function getTemperature(string memory city, uint64 subscriptionId) external returns (bytes32 requestId) {
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(SOURCE); // Initialize the request with JS code
 
@@ -83,12 +75,7 @@ contract FunctionsConsumer is FunctionsClient {
         req.setArgs(args); // Set the arguments for the request
 
         // Send the request and store the request ID
-        s_lastRequestId = _sendRequest(
-            req.encodeCBOR(),
-            subscriptionId,
-            GAS_LIMIT,
-            DON_ID
-        );
+        s_lastRequestId = _sendRequest(req.encodeCBOR(), subscriptionId, GAS_LIMIT, DON_ID);
 
         // set the city for which we are obtaining the temperature
         s_requestedCity = city;
@@ -96,11 +83,7 @@ contract FunctionsConsumer is FunctionsClient {
     }
 
     // Receive the weather in the city requested
-    function fulfillRequest(
-        bytes32 requestId,
-        bytes memory response,
-        bytes memory err
-    ) internal override {
+    function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
         if (s_lastRequestId != requestId) {
             revert UnexpectedRequestID(requestId); // Check if request IDs match
         }
@@ -112,11 +95,6 @@ contract FunctionsConsumer is FunctionsClient {
         s_lastCity = s_requestedCity;
 
         // Emit an event to log the response
-        emit Response(
-            requestId,
-            s_lastTemperature,
-            s_lastResponse,
-            s_lastError
-        );
+        emit Response(requestId, s_lastTemperature, s_lastResponse, s_lastError);
     }
 }

@@ -36,8 +36,7 @@ contract MockFunctionsRouter {
 contract FunctionsConsumerTest is Test {
     // Mirrors of the consumer's internal constants.
     address constant ROUTER = 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0;
-    bytes32 constant DON_ID =
-        0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000;
+    bytes32 constant DON_ID = 0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000;
     uint32 constant GAS_LIMIT = 300000;
     uint64 constant SUB_ID = 42;
 
@@ -62,6 +61,7 @@ contract FunctionsConsumerTest is Test {
     /// @dev Pins the exact script the DON will run. Each line ends in \n, so a
     ///      line that lost its terminator shows up here rather than at the DON.
     function test_SourceMatchesExpectedScript() public view {
+        // forgefmt: disable-next-item
         string memory expected = "const city = args[0];\n"
             "const geo = await Functions.makeHttpRequest({\n"
             "  url: `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`\n"
@@ -107,24 +107,12 @@ contract FunctionsConsumerTest is Test {
 
     function test_SourceTargetsOpenMeteoAndEscapesCity() public view {
         bytes memory src = bytes(consumer.SOURCE());
-        assertTrue(
-            _contains(src, bytes("geocoding-api.open-meteo.com")),
-            "geocoding host missing"
-        );
-        assertTrue(
-            _contains(src, bytes("api.open-meteo.com/v1/forecast")),
-            "forecast host missing"
-        );
+        assertTrue(_contains(src, bytes("geocoding-api.open-meteo.com")), "geocoding host missing");
+        assertTrue(_contains(src, bytes("api.open-meteo.com/v1/forecast")), "forecast host missing");
         // Guards against URL injection and literal spaces in city names.
-        assertTrue(
-            _contains(src, bytes("encodeURIComponent(city)")),
-            "city arg is not URL-encoded"
-        );
+        assertTrue(_contains(src, bytes("encodeURIComponent(city)")), "city arg is not URL-encoded");
         // Returning the raw body would break DON consensus on generationtime_ms.
-        assertTrue(
-            _contains(src, bytes("wx.data.current.temperature_2m")),
-            "should extract only the temperature field"
-        );
+        assertTrue(_contains(src, bytes("wx.data.current.temperature_2m")), "should extract only the temperature field");
     }
 
     /* --------------------------- getTemperature -------------------------- */
@@ -212,9 +200,7 @@ contract FunctionsConsumerTest is Test {
         bytes32 wrongId = keccak256("not-the-request");
 
         vm.prank(ROUTER);
-        vm.expectRevert(
-            abi.encodeWithSelector(FunctionsConsumer.UnexpectedRequestID.selector, wrongId)
-        );
+        vm.expectRevert(abi.encodeWithSelector(FunctionsConsumer.UnexpectedRequestID.selector, wrongId));
         consumer.handleOracleFulfillment(wrongId, bytes("x"), "");
     }
 
@@ -232,10 +218,7 @@ contract FunctionsConsumerTest is Test {
     ///      template literal on a continuation line inside an object literal
     ///      (the `url:` lines). Anything else means a line lost its terminator.
     function _assertTerminator(bytes1 c) internal pure {
-        assertTrue(
-            c == 0x3b || c == 0x7b || c == 0x7d || c == 0x60,
-            "SOURCE line ends in an unexpected character"
-        );
+        assertTrue(c == 0x3b || c == 0x7b || c == 0x7d || c == 0x60, "SOURCE line ends in an unexpected character");
     }
 
     function _contains(bytes memory haystack, bytes memory needle) internal pure returns (bool) {

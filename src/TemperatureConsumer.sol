@@ -25,9 +25,7 @@ contract TemperatureConsumer is ReceiverTemplate {
     mapping(bytes32 requestId => string city) public s_requestedCity;
 
     event TemperatureRequested(bytes32 indexed requestId, string city);
-    event TemperatureReceived(
-        bytes32 indexed requestId, string city, int32 temperatureC, uint32 observedAt
-    );
+    event TemperatureReceived(bytes32 indexed requestId, string city, int32 temperatureC, uint32 observedAt);
 
     error UnknownRequestId(bytes32 requestId);
     error EmptyCity();
@@ -41,11 +39,8 @@ contract TemperatureConsumer is ReceiverTemplate {
     function requestTemperature(string calldata city) external returns (bytes32 requestId) {
         if (bytes(city).length == 0) revert EmptyCity();
 
-        requestId = keccak256(
-            abi.encodePacked(
-                block.chainid, address(this), msg.sender, city, block.number, block.prevrandao
-            )
-        );
+        requestId =
+            keccak256(abi.encodePacked(block.chainid, address(this), msg.sender, city, block.number, block.prevrandao));
         s_requestedCity[requestId] = city;
 
         emit TemperatureRequested(requestId, city);
